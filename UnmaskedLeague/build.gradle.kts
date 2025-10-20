@@ -12,7 +12,7 @@ val ktor_version: String by project
 val kotlinProcessVersion: String by project
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(21)
     jvm {
         //Removing it causes `Configuration with name 'runtimeClasspath' not found.`
         withJava()

@@ -16,15 +16,17 @@ import java.io.File
 import java.io.InputStream
 
 fun extractResourceToFile(): File {
-    val file = (unmaskedLeagueFolder / "ManifestDownloader.exe").toFile()
+    val file = (unmaskedLeagueFolder / "ManifestDownloader").toFile()
     if (file.exists()) return file
 
-    val inputStream: InputStream? = object {}.javaClass.classLoader.getResourceAsStream("ManifestDownloader.exe")
+    val inputStream: InputStream? = object {}.javaClass.classLoader.getResourceAsStream("ManifestDownloader")
     requireNotNull(inputStream) { "Manifest downloader not found" }
 
     file.outputStream().use { output ->
         inputStream.copyTo(output)
     }
+
+    file.setExecutable(true)
 
     return file
 }
@@ -32,17 +34,17 @@ fun extractResourceToFile(): File {
 suspend fun downloadLatestSystemYaml(region: String) {
     extractResourceToFile()
     val response =
-        client.get("https://clientconfig.rpg.riotgames.com/api/v1/config/public?os=windows&region=$region&app=league_of_legends&version=1&patchline=live")
+        client.get("https://clientconfig.rpg.riotgames.com/api/v1/config/public?os=mac&region=$region&app=league_of_legends&version=1&patchline=live")
     require(response.status.isSuccess())
     val body = response.bodyAsText().deserialized().getOrElse { throw it }
     val configurations =
-        body["keystone.products.league_of_legends.patchlines.live"]["platforms"]["win"]["configurations"]
+        body["keystone.products.league_of_legends.patchlines.live"]["platforms"]["mac"]["configurations"]
     val manifestUrl = either {
         configurations.asArray().bind().first { it["id"].asString().bind() == region }["patch_url"].asString().bind()
     }.getOrElse { throw it }
 
     val process = process(
-        (unmaskedLeagueFolder / "ManifestDownloader.exe").toString(),
+        (unmaskedLeagueFolder / "ManifestDownloader").toString(),
         manifestUrl,
         "--filter",
         "system.yaml",

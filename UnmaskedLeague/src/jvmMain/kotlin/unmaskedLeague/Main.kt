@@ -32,16 +32,15 @@ val yamlOptions = DumperOptions().apply {
 val yaml = Yaml(yamlOptions)
 val systemTray: SystemTray = SystemTray.getSystemTray()
 val logger = KotlinLogging.logger {}
-val userProfile = System.getenv("USERPROFILE") ?: error("USERPROFILE not found")
+val userProfile = System.getenv("HOME") ?: error("HOME not found")
 val unmaskedLeagueFolder = userProfile.toPath() / "UnmaskedLeague"
 val companionPath by lazy { Paths.get(lolPaths.lolClientPath, "Config").toOkioPath() }
-val systemYamlPatchedPath by lazy { companionPath / "system.yaml" }
+val systemYamlPatchedPath by lazy { companionPath / "Contents" / "LoL" / "system.yaml" }
 val client = HttpClient(ClientCIO) { install(ContentEncoding) { gzip() } }
 
 data class LcdsHost(val host: String, val port: Int)
 data class Globals(val region: String, val locale: String)
 data class LolPaths(val riotClientPath: String, val lolClientPath: String)
-
 
 fun main(): Unit = runBlocking {
     if (isLockfileTaken()) return@runBlocking
@@ -159,24 +158,20 @@ private suspend fun startClient(hosts: Map<String, LcdsHost>, configProxy: Confi
     }
 
 val lolPaths by lazy {
-    val lolClientInstalls: Path = System.getenv("ALLUSERSPROFILE")
-        ?.let { "$it/Riot Games/Metadata/league_of_legends.live/league_of_legends.live.product_settings.yaml" }
-        ?.toPath(true)
-        ?.takeIf { FileSystem.SYSTEM.exists(it) }
-        ?: throw LeagueNotFoundException("Cannot find Lol Client Installs (ALLUSERSPROFILE)")
+    val riotClientInstallsPath = "/Users/Shared/Riot Games/RiotClientInstalls.json".toPath(true)
+    val lolClientInstallsPath = "/Users/Shared/Riot Games/Metadata/league_of_legends.live/league_of_legends.live.product_settings.yaml".toPath(true)
 
-    val riotClientInstalls = System.getenv("ALLUSERSPROFILE")
-        ?.let { "$it/Riot Games/RiotClientInstalls.json" }
-        ?.toPath(true)
-        ?.takeIf { FileSystem.SYSTEM.exists(it) }
-        ?: throw LeagueNotFoundException("Cannot find Riot Client Installs (ALLUSERSPROFILE)")
+    if (!FileSystem.SYSTEM.exists(riotClientInstallsPath))
+        throw LeagueNotFoundException("Cannot find RiotClientInstalls.json at $riotClientInstallsPath")
 
-    val riotClientInstallsJson = FileSystem.SYSTEM.source(riotClientInstalls).buffer().readUtf8().deserialized()
+    if (!FileSystem.SYSTEM.exists(lolClientInstallsPath))
+        throw LeagueNotFoundException("Cannot find product_settings.yaml at $lolClientInstallsPath")
+
+    val riotClientInstallsJson = FileSystem.SYSTEM.source(riotClientInstallsPath).buffer().readUtf8().deserialized()
     val riotClientPath = riotClientInstallsJson["rc_live"].asString()
         .getOrElse { throw LeagueNotFoundException("Cannot find property rc_live") }
 
-    val file = FileSystem.SYSTEM.source(lolClientInstalls).buffer()
-
+    val file = FileSystem.SYSTEM.source(lolClientInstallsPath).buffer()
     val yamlMap = yaml.load<Map<String, Any>>(file.readUtf8())
     val lolPath: String = yamlMap["product_install_full_path"] as String
     LolPaths(riotClientPath, lolPath)

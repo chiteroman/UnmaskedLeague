@@ -13,7 +13,7 @@
       <entry name="!?*.aj" />
       <entry name="*.exe" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel target="11">
+    <bytecodeTargetLevel target="21">
       <module name="UnmaskedLeague.main" target="8" />
       <module name="UnmaskedLeague.Patcher" target="17" />
       <module name="UnmaskedLeague.test" target="8" />

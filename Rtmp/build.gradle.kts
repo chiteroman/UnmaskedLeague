@@ -8,7 +8,7 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(21)
     jvm()
     sourceSets {
         val commonMain by getting {
