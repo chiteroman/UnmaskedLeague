@@ -30,7 +30,7 @@ class ConfigProxy {
                         val configurations = it["configurations"]
                         configurations.asArray().bind().forEach { config ->
                             val args = config["launcher"]["arguments"].asArray().bind().value
-                            args += "--system-yaml-override=Config/system.yaml".asJson()
+                            args += "--system-yaml-override=Config/Contents/LoL/system.yaml".asJson()
                         }
                     }
                 }
@@ -44,7 +44,7 @@ class ConfigProxy {
     fun stop() = server?.stop(1000, 5000)
 
     suspend fun start() {
-        server = embeddedServer(CIO, port = 0) {
+        server = embeddedServer(CIO, port = 0, "127.0.0.1") {
             routing {
                 route("{...}") {
                     handle {

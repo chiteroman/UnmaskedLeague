@@ -180,7 +180,7 @@ val lolPaths by lazy {
 val regionData by lazy {
     try {
         val (_, lolPath) = lolPaths
-        val configPath = lolPath.toPath(true) / "Config" / "LeagueClientSettings.yaml"
+        val configPath = lolPath.toPath(true) / "Contents" / "LoL" / "Config" / "LeagueClientSettings.yaml"
         val config = FileSystem.SYSTEM.source(configPath).buffer()
         val configYaml = config.use { yaml.load<Map<String, Any>>(config.readUtf8()) }
         val globals = configYaml.getMap("install").getMap("globals")

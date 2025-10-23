@@ -45,7 +45,7 @@ private suspend fun handshake(
 
 suspend fun LeagueProxyClient(host: String, port: Int): LeagueProxyClient {
     val selectorManager = SelectorManager(Dispatchers.IO)
-    val socketServer = aSocket(selectorManager).tcp().bind()
+    val socketServer = aSocket(selectorManager).tcp().bind("127.0.0.1")
 
     return LeagueProxyClient(socketServer, host, port)
 }
